@@ -73,7 +73,15 @@ func (s *ProxyHandler) HandleRequest(wr http.ResponseWriter, req *http.Request) 
 		req.URL.Scheme = "http" // We can't access :scheme pseudo-header, so assume http
 		req.URL.Host = req.Host
 	}
-	resp, err := s.httptransport.RoundTrip(req)
+
+	var resp *http.Response
+	var err error
+	if req.URL.Host == "retracker.local" {
+		client := &http.Client{}
+		resp, err = client.Do(req)
+	} else {
+		resp, err = s.httptransport.RoundTrip(req)
+	}
 	if err != nil {
 		s.logger.Error("HTTP fetch error: %v", err)
 		http.Error(wr, "Server Error", http.StatusInternalServerError)
